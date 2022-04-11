@@ -5,8 +5,7 @@ Created on Thu Apr  7 17:25:50 2022
 
 @author: wmnc67
 """
-import sys 
-from z3 import *
+
 from FFerGetModelDetails import *
 
 #NSSec()
@@ -40,7 +39,7 @@ def printr2(str1,thing):
     sys.stdout=old_stdout 
     
     
-def NSSec():
+def NSSec(NBvs):
     #secBC=[0 for i in range(44)]
     printr("NS sector:")# 1 left and two right-moving NS oscillators or 1 dX^mu")
     #oscillsL=[index for index, char in enumerate(secBC) if index<4 if char==0]
@@ -51,7 +50,7 @@ def NSSec():
             for freq1 in range(2):
                 for OscInd2 in range(27,44):
                     for freq2 in range(2):
-                        for j in range(NumBVs):
+                        for j in range(NBvs):
                         #for basisBC in Basis:
                             OscBit=(-1)**(Basis[j][OscInd0])*(-1)**(freq1*Basis[j][OscInd1])*(-1)**(freq2*Basis[j][OscInd2])
                             if OscBit==1: #LHS=+1 necessarily.

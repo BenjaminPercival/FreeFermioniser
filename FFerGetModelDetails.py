@@ -5,26 +5,14 @@ Created on Tue Apr  5 16:01:41 2022
 
 @author: wmnc67
 """
-import numpy as np
-import sys
-#from z3 import *
-import itertools
-#################################################################################
-#INPUT DATA
-InputBasisFile = "Input/InBasis.txt"  # File Containing the Basis Vectors
-InputGSOFile = "Input/InGSO.txt"  # File Containing the GSO Coefficients
-#OutputFile = "OutputModel.txt"  # Destination for the q-Exp. Data
-##################################################################################
 
-
-#load input data
-with open(InputBasisFile, "r") as InBasis:
-     Basis = np.loadtxt(InBasis)
-with open(InputGSOFile, "r") as InGSO:
-     GSO = np.loadtxt(InGSO, dtype=complex)
 
 #define an object:  model with the characteristics: number basis vecs, secs, dot prods,..
-NumBVs = Basis.shape[0]
+def getNumBVs(bas):
+    NumBV = bas.shape[0]
+    return NumBV
+
+
 
 def DProd(vi,vj):
    DP = 0.5*np.dot(vi[0:20],vj[0:20]) - 0.5*np.dot(vi[20:32],vj[20:32]) \
