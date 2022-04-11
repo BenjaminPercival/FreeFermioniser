@@ -5,6 +5,7 @@ Created on Tue Apr  5 16:01:41 2022
 
 @author: wmnc67
 """
+
 import numpy as np
 import sys
 #from z3 import *
