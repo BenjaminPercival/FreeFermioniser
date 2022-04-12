@@ -161,33 +161,35 @@ def GetAllSecs(NBV,bas,NSects,lcms):
     AllSector = np.zeros((NSects,NBV))
     
     
-rngs = CBasis.astype(int)
-for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
-    AllSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
-    AllSector[i,:] = t
-#now extract just potentially masless ones
-NumMSecs = 0
-for i in range(NumSec):
-    VacESec = vacE(AllSectorBC[i])
-    if VacESec[0]>4 or VacESec[1]>8:
-        pass
-    else:
-       NumMSecs+=1 
-
-MSectorBC = np.zeros((NumMSecs,Basis.shape[1]))
-MSector = np.zeros((NumMSecs,NumBVs))
-rngs = CBasis.astype(int)
-for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
-    VacESec = vacE(AllSectorBC[i])
-    if VacESec[0]>4 or VacESec[1]>8:
-        pass
-    else:
-        MSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
-        MSector[i,:] = t
-SectorUnRed = MSectorBC.copy()
-SectorUnRed[0][:] = 2
-MSectorBC = MSectorBC % 2 # would think this needs repeating until in (-1,1] range
-MSector[0][0] = 2
+# =============================================================================
+# rngs = CBasis.astype(int)
+# for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
+#     AllSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
+#     AllSector[i,:] = t
+# #now extract just potentially masless ones
+# NumMSecs = 0
+# for i in range(NumSec):
+#     VacESec = vacE(AllSectorBC[i])
+#     if VacESec[0]>4 or VacESec[1]>8:
+#         pass
+#     else:
+#        NumMSecs+=1 
+# 
+# MSectorBC = np.zeros((NumMSecs,Basis.shape[1]))
+# MSector = np.zeros((NumMSecs,NumBVs))
+# rngs = CBasis.astype(int)
+# for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
+#     VacESec = vacE(AllSectorBC[i])
+#     if VacESec[0]>4 or VacESec[1]>8:
+#         pass
+#     else:
+#         MSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
+#         MSector[i,:] = t
+# SectorUnRed = MSectorBC.copy()
+# SectorUnRed[0][:] = 2
+# MSectorBC = MSectorBC % 2 # would think this needs repeating until in (-1,1] range
+# MSector[0][0] = 2
+# =============================================================================
 
 
 # Deltas of the Sectors
