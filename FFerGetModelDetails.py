@@ -9,20 +9,7 @@ Created on Tue Apr  5 16:01:41 2022
 import numpy as np
 import sys
 #from z3 import *
-import itertools
-#################################################################################
-#INPUT DATA
-InputBasisFile = "Input/InBasis.txt"  # File Containing the Basis Vectors
-InputGSOFile = "Input/InGSO.txt"  # File Containing the GSO Coefficients
-#OutputFile = "OutputModel.txt"  # Destination for the q-Exp. Data
-##################################################################################
-
-
-#load input data
-with open(InputBasisFile, "r") as InBasis:
-     Basis = np.loadtxt(InBasis)
-with open(InputGSOFile, "r") as InGSO:
-     GSO = np.loadtxt(InGSO, dtype=complex)
+import itertools as it
 
 
 #define an object:  model with the characteristics: number basis vecs, secs, dot prods,..
@@ -31,71 +18,149 @@ def getNumBVs(bas):
     return NumBV
 
 
-
 def DProd(vi,vj):
    DP = 0.5*np.dot(vi[0:20],vj[0:20]) - 0.5*np.dot(vi[20:32],vj[20:32]) \
           - np.dot(vi[32:44],vj[32:44])
    return DP
 
 # Dot product of basis vectors
-BP = np.zeros((len(GSO[0]),len(GSO[0])))
-for i in range(len(GSO[0])):
-    for k in range(len(GSO[0])):
-        BP[i][k] = DProd(Basis[i],Basis[k])
+def BasDotProds(bas,GMat):
+    BDP=np.array([[DProd(bas[i],bas[k]) for k in np.xrange(GMat.shape[1])] for i in np.xrange(GMat.shape[1])])
+    return BDP
   
+def printr(thing):
+    f = open('OutputModel.txt','a') 
+    
+    old_stdout = sys.stdout  #  store the default system handler to be able to restore it 
+
+    sys.stdout = f 
+    print(thing)
+    f.close()
+    sys.stdout=old_stdout
+    
+def printr2(str1,thing):
+    f = open('OutputModel.txt','a') 
+    
+    old_stdout = sys.stdout  #  store the default system handler to be able to restore it 
+
+    sys.stdout = f 
+    print(str1)
+    print(thing)
+    f.close()
+    sys.stdout=old_stdout 
+
 
 # Check if basis GSOs are modular invariant
-n1 = n2 = 0
-for i in range(NumBVs):
-    for k in range(NumBVs):
-        TGSO1 = -np.around(np.exp(+1j*np.pi*BP[i][k]/4)*GSO[i][0])
-        TGSO2 = np.around(np.exp(1j*np.pi*BP[i][k]/2)*np.conj(GSO[k][i]))
-        if i == k and TGSO1 != GSO[i][k]:
-            n1=n1+1
-        elif i != k and TGSO2 != GSO[i][k]:
-            n2=n2+1
-if n1 != 0 or n2 != 0:
-    print("~ Error: Basis GSOs not modular invariant!")
-    #sys.exit()
-else:
-    print("~ Basis GSOs are MI!")
-
-#basis=['One','S']
-#basisBCs=[[1 for i in range(44)],[1 if i<4 else 0 for i in range(44)]]
-#secs=[[1,0],[1,1],[0,0],[0,1]]
-#secsBCs=[[1 for i in range(44)],[0 if i<4 else 1 for i in range(44)],\
-#         [0 for i in range(44)],[1 if i<4 else 0 for i in range(44)]]
-#secsVacEs=[[1*np.dot(secBC[0:4],secBC[0:4])+0.5*np.dot(secBC[4:16],secBC[4:16]),\
-#            0.5*np.dot(secBC[16:28],secBC[16:28]) \
-#          + np.dot(secBC[28:44],secBC[28:44])] for secBC in secsBCs]
-#print(secsVacEs)
-
-#get number of sectors
-CBasis = np.zeros(NumBVs)
-for i in range(NumBVs):
-    for k in range(len(Basis[0][:])):
-        if Basis[i][k] % 1 != 0:
-            CBasis[i] = CBasis[i]+1
-NumSec = 1;
-for i in range(NumBVs):
-    if CBasis[i] == 0:
-        NumSec = NumSec*2
-        CBasis[i] = int(2)
-    elif CBasis[i] != 0:
-        NumSec = NumSec*4
-        CBasis[i] = int(4)
+def IsModInvG(NBV,BDPs,Gmat):
+    IsMI=True
+    while IsMI is True:
+        for i in range(NBV):
+            if Gmat[i][i]!=-np.around(np.exp(+1j*np.pi*BDPs[i][i]/4)*Gmat[i][0]):
+                printr2("Diagonal GGSO phases not Modular Invariant for i =", i)
+                IsMI=False
+                break
+        for jk in it.combinations(range(NBV), 2):
+            el=list(jk)
+            if Gmat[el[0]][el[1]] != np.around(np.exp(1j*np.pi*BDPs[el[0]][el[1]]/2)*np.conj(Gmat[el[1]][el[0]])):
+                IsMI=False
+                printr2("Diagonal GGSO phases not Modular Invariant for el =", el)
+                break
+                
+    #print("~ Basis GSOs are MI!")
+    return IsMI
 
 
+
+def readBasis(bas):
+    RightForm=True
+    NCols=np.size(bas, 1)
+    if NCols!=44:
+        printr("There are not 44 elements per basis vector")
+        RightForm=False
+    if sum(bas[0,:])!=44:
+        printr("1 is not the first basis vector")
+        RightForm=False
+        
+    IsSymmetric=True
+    while IsSymmetric is True:
+        for i in range(bas.shape[0]):
+            for j in range(12):
+                if bas[i][4+j]!=bas[i][16+j]: # y^i and w^i's symmetric
+                    IsSymmetric=False
+                    break
+    if IsSymmetric is False:
+        RightForm=False
+    
+    ValidBCs=True
+    while ValidBCs is True:
+        for i in range(bas.shape[0]):
+            for j in range(NCols):
+                if j<28:
+                    if bas[i][j]!=0 and bas[i][j]!=1: # psi,chi, y,w 's not real BCs
+                        printr("Psi^mu, chi12, chi34, chi56 and internal fermions must have real BCs= 0 or 1")
+                        ValidBCs=False
+                        break
+                else:
+                    if bas[i][j]!=0 and bas[i][j]!=1 and  bas[i][j]!=0.5: 
+                        printr("For the complex gauge fermions we require BCs=0,0.5 or 1")
+                        ValidBCs=False
+                        break
+    if ValidBCs is False:
+        RightForm=False
+    return RightForm
+    
+
+def LCMs(bas):
+    Ni=[2]
+    for i in range(1,bas.shape[0]):
+        Ni.append(2)
+        for k in range(np.size(bas, 1)):
+                
+            if bas[i][k]==0.5: # psi,chi, y,w 's not real BCs
+                Ni[i]=4
+            else:
+                pass
+    return Ni
+    
+def IsModInvB(NBV,BDPs,bas,lcms):
+    BasisMI=True
+    
+
+    while BasisMI is True:
+        for i in range(NBV):
+            if lcms[i]*BDPs[i][i]%8!=0:
+                BasisMI=False
+                printr2("Basis breaks modular invariance for basis vector number =", i)
+                break
+        for jk in it.combinations(range(NBV), 2):
+            el=list(jk)
+            Nij=max(lcms[el[0]],lcms[el[1]])
+            if Nij*BDPs[el[0]][el[1]]%4!=0:
+                BasisMI=False
+                printr2("Basis breaks modular invariance for el =", el)
+                break
+    return BasisMI
+    
+        
+def NumbSecs(NBV,lcms):
+    N2s=lcms.count(2)
+    N4s=lcms.count(4)
+    NSecs=2**N2s*4**N4s
+    return NSecs
+    
 #get inner L and R prods to restrict to only M<=0 sec
 def vacE(sec):
-    a_vL=0.5*np.dot(sec[0:20],sec[0:20])
-    a_vR=0.5*np.dot(sec[20:32],sec[20:32]) \
-          + np.dot(sec[32:44],sec[32:44])
+    a_vL=0.5*np.dot(sec[0:16],sec[0:16])
+    a_vR=0.5*np.dot(sec[16:28],sec[16:28]) \
+          + np.dot(sec[28:44],sec[28:44])
     return [a_vL,a_vR]
 
 #Want only M<=0 secs but get all sectors first
-AllSectorBC = np.zeros((NumSec,Basis.shape[1]))
-AllSector = np.zeros((NumSec,NumBVs))
+def GetAllSecs(NBV,bas,NSects,lcms):
+    AllSectorBC = np.zeros((NSects,bas.shape[1]))
+    AllSector = np.zeros((NSects,NBV))
+    
+    
 rngs = CBasis.astype(int)
 for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
     AllSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])

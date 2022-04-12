@@ -7,12 +7,14 @@ Created on Thu Apr  7 17:08:20 2022
 """
 #from FFerGetModelDetails.py import *
 import sys 
-from z3 import *
+from z3 import * #pip install z3-solver
 import numpy as np
 import sys
 import itertools
 from SpectrumFunctions import NSSec, SSec
-from FFerGetModelDetails import getNumBVs
+from FFerGetModelDetails import getNumBVs, BasDotProds, IsModInvG, IsModInvB
+import psyco  # pip install psychopy
+psyco.full()
 
 #################################################################################
 #INPUT DATA
@@ -29,9 +31,12 @@ with open(InputGSOFile, "r") as InGSO:
      GSO = np.loadtxt(InGSO, dtype=complex)
 
 #extract variables from input
-NumBVs=getNumBVs(Basis)
-
-
+NumBVs=getNumBVs(Basis)  # num basis vecs
+BP=BasDotProds(Basis,GSO) # basis dot prods as numpy array
+ModInvG=IsModInvG(NumBVs,BP,GSO) #GGSO phase matric MI Boolean 
+Nis=LCMs(Basis) #LCMs of basis vecs
+ModInvB=IsModInvB(NumBVs,BP,Basis,Nis)
+NSec=NumbSecs(NumBVs,Nis)
 
 #FreeFermioniser create output file
 

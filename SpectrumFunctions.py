@@ -17,26 +17,7 @@ from FFerGetModelDetails import *
 #Exotics()
 #Hidden()
 
-def printr(thing):
-    f = open('OutputModel.txt','a') 
-    
-    old_stdout = sys.stdout  #  store the default system handler to be able to restore it 
 
-    sys.stdout = f 
-    print(thing)
-    f.close()
-    sys.stdout=old_stdout
-    
-def printr2(str1,thing):
-    f = open('OutputModel.txt','a') 
-    
-    old_stdout = sys.stdout  #  store the default system handler to be able to restore it 
-
-    sys.stdout = f 
-    print(str1)
-    print(thing)
-    f.close()
-    sys.stdout=old_stdout 
     
     
 def NSSec(NBvs):
@@ -110,17 +91,23 @@ def SSec():
                     
                             while s.check() == sat: 
                             #if s.check() == sat: 
+                                m = s.model()
+# =============================================================================
+#                                 for v in vars:
+#                                   print("%s = %5s" % (v, m.evaluate(v, model_completion = True))),
+#                                 print
+#                                 s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in vars]]))
+# =============================================================================
+                               
                                 
-                                m = s.model () 
-                                
-                                stateB=[m[f[i]] for i in range(len(RFs))]
+                                stateB=[m.evaluate(f[i], model_completion = True) for i in range(len(RFs))]
                                 #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
                                 
                                 printr(stateB)
                                 #countr+=1
                                 #if countr%100==0:
                                 #    print(countr)
-                                s.add(Not(And([v() == m[v] for v in m]))) 
+                                s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
                             s.reset()
     #s.reset()
     if NSUSY!=0:
