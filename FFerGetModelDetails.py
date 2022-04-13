@@ -156,63 +156,99 @@ def vacE(sec):
     return [a_vL,a_vR]
 
 #Want only M<=0 secs but get all sectors first
-def GetAllSecs(NBV,bas,NSects,lcms):
-    AllSectorBC = np.zeros((NSects,bas.shape[1]))
-    AllSector = np.zeros((NSects,NBV))
-    
-    
-# =============================================================================
-# rngs = CBasis.astype(int)
-# for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
-#     AllSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
-#     AllSector[i,:] = t
-# #now extract just potentially masless ones
-# NumMSecs = 0
-# for i in range(NumSec):
-#     VacESec = vacE(AllSectorBC[i])
-#     if VacESec[0]>4 or VacESec[1]>8:
-#         pass
-#     else:
-#        NumMSecs+=1 
-# 
-# MSectorBC = np.zeros((NumMSecs,Basis.shape[1]))
-# MSector = np.zeros((NumMSecs,NumBVs))
-# rngs = CBasis.astype(int)
-# for i,t in enumerate(itertools.product(*[range(i) for i in rngs])):
-#     VacESec = vacE(AllSectorBC[i])
-#     if VacESec[0]>4 or VacESec[1]>8:
-#         pass
-#     else:
-#         MSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
-#         MSector[i,:] = t
-# SectorUnRed = MSectorBC.copy()
-# SectorUnRed[0][:] = 2
-# MSectorBC = MSectorBC % 2 # would think this needs repeating until in (-1,1] range
-# MSector[0][0] = 2
-# =============================================================================
+def GetAllSecUnRedBC(NBV,bas,NSects,lcms):
+    AllSecUnRedBC = np.zeros((NSects,bas.shape[1]))
+    #AllSector = np.zeros((NSects,NBV))
+    for i,t in enumerate(it.product(*[range(j) for j in lcms])):
+        AllSecUnRedBC[i,:] = sum([bas[i,:] * t[i] for i in range(len(t))])
+        #AllSector[i,:] = t
+    #SectorUnRed = AllSectorBC.copy()
+    #SectorUnRed[0][:] = 2
+    #AllSectorBC = AllSectorBC % 2
+    #AllSector[0][0] = 2 #NS sec
+    return AllSecUnRedBC
 
+def GetAllSecRedBC(SecsUnRed):
+    
+    SecsUnRed[0][:] = 2
+    AllSectorBC = SecsUnRed % 2
+    
+    return AllSectorBC
+
+
+def GetAllSecs(NBV,NSects,lcms):
+    
+    AllSector = np.zeros((NSects,NBV))
+    for i,t in enumerate(it.product(*[range(j) for j in lcms])):
+        AllSector[i,:] = t
+    AllSector[0][0] = 2 #NS sec
+    
+    return AllSector   
+
+def MasslessUnRedSecs(AllUnRed):
+    
+    SecsUnRed[0][:] = 2
+    AllSectorBC = SecsUnRed % 2
+    NumSec=AllUnRed.shape[0]
+    MSecBCsUnRed=[]
+    for i in range(NumSec):
+        VacESec = vacE(AllSectorBC[i])
+        if VacESec[0]>4 or VacESec[1]>8:
+            pass
+        else:
+            MSecBCsUnRed.append(AllSectorBC[i])
+    MSecBCsUnRed=np.array(MSecBCsUnRed) 
+   
+    return MSecBCsUnRed
+            
+
+def MasslessSecs(allSecBc,AllSecs,NumSec,bas):
+    #NMsecs=0
+    MSecBCs=[]
+    MSecs=[]
+    for i in range(NumSec):
+        VacESec = vacE(allSecBc[i])
+        if VacESec[0]>4 or VacESec[1]>8:
+            pass
+        else:
+            MSecBCs.append(allSecBc[i])
+            MSecs.append(AllSecs[i])
+            
+            #NMsecs+=1         
+    MSecBCs=np.array(MSecBCs)
+    MSecs=np.array(MSecs)
+    
+    return np.hstack((MSecs, MSecBCs))
+    
+    
 
 # Deltas of the Sectors
-SDelta = np.zeros((NumMSecs,1))
-for i in range(NumMSecs):
-    if MSectorBC[i][0] == 1:
-        SDelta[i] = -1
-    elif MSectorBC[i][0]  == 0:
-        SDelta[i] = 1
+def MSecDeltas(MSec,NBV):
+    NumMSecs=MSec.shape[0]
+    SDelta = np.zeros((NumMSecs,1))
+    for i in range(NumMSecs):
+        if MSec[i][NBV] == 1:
+            SDelta[i] = -1
+        elif MSec[i][NBV]  == 0:
+            SDelta[i] = 1
+    return SDelta
         
 # GSO phases for the Sectors
-SecGSO = np.ones((NumMSecs,NumBVs),dtype=np.complex64)
-#maybe can just do the sectors with the basis vecs GSOs
-for i in range(NumMSecs):
-    for j in range(NumBVs):
-        SGSO1 = (SDelta[i]**(np.sum(Basis[j])-1) * SDelta[j]**(np.sum(MSector[i])-1))
-        SGSO2 = np.around(np.exp(1j*np.pi*DProd((MSectorBC[i][:]-SectorUnRed[i][:]),Basis[j][:])/2))
-        SGSO3 = 1
-        for k in range(NumBVs):
-            for l in range(NumBVs):
-                TSGSO3 = GSO[k][l]**(MSector[i][k]*MSector[j][l])
-                SGSO3 = SGSO3 * TSGSO3
-        SecGSO[i][j] = SGSO1 * SGSO2 * SGSO3
+def GetGGSO(MSec,MSecUnRed,NBV,delts,bas):
+    NumMSecs=MSec.shape[0]
+    SecGSO = np.ones((NumMSecs,NBV),dtype=np.complex64)
+    #maybe can just do the sectors with the basis vecs GSOs
+    for i in range(NumMSecs):
+        for j in range(NumBVs):
+            SGSO1 = (delts[i]**(np.sum(bas[j])-1) * delts[j]**(np.sum(MSector[i])-1))
+            SGSO2 = np.around(np.exp(1j*np.pi*DProd((MSec[i][NBV:]-MSecUnRed[i][:]),bas[j][:])/2))
+            SGSO3 = 1
+            for k in range(NumBVs):
+                for l in range(NumBVs):
+                    TSGSO3 = GSO[k][l]**(MSec[i][k]*MSec[j][l])
+                    SGSO3 = SGSO3 * TSGSO3
+            SecGSO[i][j] = SGSO1 * SGSO2 * SGSO3
+    return SecGSO
 
 
     
