@@ -13,19 +13,28 @@ import itertools as it
 
 
 #define an object:  model with the characteristics: number basis vecs, secs, dot prods,..
+#self parameter is a reference to the current instance of the class- used to access variables in class. can name some other than self but has to be the first parameter of any function in class:
+#The __init__() function called automatically every time the class used to create a new object.
+
+#class FFModel:
+    #def __init__(self, bas, gsos):
+        #self.bas=bas
+        #self.gsos=gsos
+        
+        
 def getNumBVs(bas):
     NumBV = bas.shape[0]
     return NumBV
 
 
 def DProd(vi,vj):
-   DP = 0.5*np.dot(vi[0:20],vj[0:20]) - 0.5*np.dot(vi[20:32],vj[20:32]) \
-          - np.dot(vi[32:44],vj[32:44])
+   DP = np.dot(vi[0:4],vj[0:4])+0.5*np.dot(vi[4:16],vj[4:16]) - 0.5*np.dot(vi[16:28],vj[16:28]) \
+          - np.dot(vi[28:44],vj[28:44])
    return DP
 
 # Dot product of basis vectors
 def BasDotProds(bas,GMat):
-    BDP=np.array([[DProd(bas[i],bas[k]) for k in np.xrange(GMat.shape[1])] for i in np.xrange(GMat.shape[1])])
+    BDP=np.array([[DProd(bas[i],bas[k]) for k in range(GMat.shape[1])] for i in range(GMat.shape[1])])
     return BDP
   
 def printr(thing):
@@ -53,18 +62,27 @@ def printr2(str1,thing):
 # Check if basis GSOs are modular invariant
 def IsModInvG(NBV,BDPs,Gmat):
     IsMI=True
-    while IsMI is True:
-        for i in range(NBV):
-            if Gmat[i][i]!=-np.around(np.exp(+1j*np.pi*BDPs[i][i]/4)*Gmat[i][0]):
-                printr2("Diagonal GGSO phases not Modular Invariant for i =", i)
-                IsMI=False
-                break
-        for jk in it.combinations(range(NBV), 2):
-            el=list(jk)
-            if Gmat[el[0]][el[1]] != np.around(np.exp(1j*np.pi*BDPs[el[0]][el[1]]/2)*np.conj(Gmat[el[1]][el[0]])):
-                IsMI=False
-                printr2("Diagonal GGSO phases not Modular Invariant for el =", el)
-                break
+    if NBV==Gmat.shape[0]:
+        while IsMI is True:
+            for i in range(1,NBV):
+                if Gmat[i][i]!=-np.around(np.exp(+1j*np.pi*BDPs[i][i]/4)*Gmat[i][0]):
+                    printr2("Diagonal GGSO phases not Modular Invariant for i =", i)
+                    print("Diagonal GGSO phases not Modular Invariant for i =", i)
+                    IsMI=False
+                    break
+            for jk in it.combinations(range(NBV), 2):
+                el=list(jk)
+                if Gmat[el[0]][el[1]] != np.around(np.exp(1j*np.pi*BDPs[el[0]][el[1]]/2)*np.conj(Gmat[el[1]][el[0]])):
+                    IsMI=False
+                    printr2("Diagonal GGSO phases not Modular Invariant for el =", el)
+                    print("Diagonal GGSO phases not Modular Invariant for el =", el)
+                    #print("this phase is:", Gmat[el[0]][el[1]])
+                    #print("but the e^ipi i.j/2 * phase flipped is:", np.around(np.exp(1j*np.pi*BDPs[el[0]][el[1]]/2)*np.conj(Gmat[el[1]][el[0]]))) 
+                    break
+            break
+    else:
+        IsMI=False
+        print("Number of basis vectors not matched by size of GGSO matrix")
                 
     #print("~ Basis GSOs are MI!")
     return IsMI
@@ -88,6 +106,7 @@ def readBasis(bas):
                 if bas[i][4+j]!=bas[i][16+j]: # y^i and w^i's symmetric
                     IsSymmetric=False
                     break
+        break
     if IsSymmetric is False:
         RightForm=False
     
@@ -105,8 +124,10 @@ def readBasis(bas):
                         printr("For the complex gauge fermions we require BCs=0,0.5 or 1")
                         ValidBCs=False
                         break
+        break
     if ValidBCs is False:
         RightForm=False
+        
     return RightForm
     
 
@@ -139,6 +160,7 @@ def IsModInvB(NBV,BDPs,bas,lcms):
                 BasisMI=False
                 printr2("Basis breaks modular invariance for el =", el)
                 break
+        break
     return BasisMI
     
         
@@ -187,8 +209,8 @@ def GetAllSecs(NBV,NSects,lcms):
 
 def MasslessUnRedSecs(AllUnRed):
     
-    SecsUnRed[0][:] = 2
-    AllSectorBC = SecsUnRed % 2
+    AllUnRed[0][:] = 2
+    AllSectorBC = AllUnRed % 2
     NumSec=AllUnRed.shape[0]
     MSecBCsUnRed=[]
     for i in range(NumSec):
@@ -202,16 +224,16 @@ def MasslessUnRedSecs(AllUnRed):
     return MSecBCsUnRed
             
 
-def MasslessSecs(allSecBc,AllSecs,NumSec,bas):
+def MasslessSecs(allSecBcRed,AllSecs,NumSec,bas):
     #NMsecs=0
     MSecBCs=[]
     MSecs=[]
     for i in range(NumSec):
-        VacESec = vacE(allSecBc[i])
+        VacESec = vacE(allSecBcRed[i])
         if VacESec[0]>4 or VacESec[1]>8:
             pass
         else:
-            MSecBCs.append(allSecBc[i])
+            MSecBCs.append(allSecBcRed[i])
             MSecs.append(AllSecs[i])
             
             #NMsecs+=1         
@@ -234,22 +256,36 @@ def MSecDeltas(MSec,NBV):
     return SDelta
         
 # GSO phases for the Sectors
-def GetGGSO(MSec,MSecUnRed,NBV,delts,bas):
+def GetGGSOMSecBas(MSec,MSecUnRed,NBV,delts,bas,ggso):
     NumMSecs=MSec.shape[0]
     SecGSO = np.ones((NumMSecs,NBV),dtype=np.complex64)
     #maybe can just do the sectors with the basis vecs GSOs
     for i in range(NumMSecs):
-        for j in range(NumBVs):
-            SGSO1 = (delts[i]**(np.sum(bas[j])-1) * delts[j]**(np.sum(MSector[i])-1))
+        for j in range(NBV):
+            SGSO1 = (delts[i]**(np.sum(bas[j])-1) * delts[j]**(np.sum(MSec[i][NBV:])-1))
             SGSO2 = np.around(np.exp(1j*np.pi*DProd((MSec[i][NBV:]-MSecUnRed[i][:]),bas[j][:])/2))
             SGSO3 = 1
-            for k in range(NumBVs):
-                for l in range(NumBVs):
-                    TSGSO3 = GSO[k][l]**(MSec[i][k]*MSec[j][l])
+            for k in range(NBV):
+                for l in range(NBV):
+                    TSGSO3 = ggso[k][l]**(MSec[i][k]*MSec[j][l])
                     SGSO3 = SGSO3 * TSGSO3
             SecGSO[i][j] = SGSO1 * SGSO2 * SGSO3
     return SecGSO
-
-
-    
+"""
+def GetGGSOMSecMSec(MSec,MSecUnRed,NBV,delts,bas,ggso):
+    NumMSecs=MSec.shape[0]
+    SecGSO = np.ones((NumMSecs,NBV),dtype=np.complex64)
+    #maybe can just do the sectors with the basis vecs GSOs
+    for i in range(NumMSecs):
+        for j in range(NumMSecs):
+            SGSO1 = (delts[i]**(np.sum(NumMSecs[j][NBV:])-1) * delts[j]**(np.sum(MSec[i][NBV:])-1))
+            SGSO2 = np.around(np.exp(1j*np.pi*DProd((MSec[i][NBV:]-MSecUnRed[i][:]),MSec[j][NBV:]-MSecUnRed[j][:])))
+            SGSO3 = 1
+            for k in range(NBV):
+                for l in range(NBV):
+                    TSGSO3 = ggso[k][l]**(MSec[i][k]*MSec[j][l])
+                    SGSO3 = SGSO3 * TSGSO3
+            SecGSO[i][j] = SGSO1 * SGSO2 * SGSO3
+    return SecGSO
+"""
 

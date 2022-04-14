@@ -6,7 +6,7 @@ Created on Thu Apr  7 17:25:50 2022
 @author: wmnc67
 """
 
-from FFerGetModelDetails import *
+from FFerGetModelDetails import vacE, DProd
 
 #NSSec()
 #SSec() #in this function account for possible Stilde
@@ -17,7 +17,32 @@ from FFerGetModelDetails import *
 #Exotics()
 #Hidden()
 
-
+def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas):
+    NumMSecs=MSects.shape[0]
+    MSecVacEs=[vacE(MSects[i][NBV:]) for i in range(NumMSecs)]
+    MSecsUnprojBool=[]
+    MSecsUnproj=[]
+    for i in range(1,NumMSecs):#don't need to do NS
+        vacEi=MSecVacEs[i]
+        SecUnProjd=True
+        for j in range(1,NBV):#don't need 1
+            if DProd(MSects[i][NBV:],bas[j][:])==0:
+                if vacEi==[4,8]:
+                    LHS=deltMSects[i]*MSectGSOs[i][j]
+                    if LHS==-1:
+                        SecUnProjd=False
+                elif vacEi==[4,4]:
+                    for k in range(28,44):
+                        LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
+                        if LHS==-1:
+                            SecUnProjd=False
+                        
+        MSecsUnprojBool.append(SecUnProjd)
+        
+    return MSecsUnproj
+            
+            
+            
     
     
 def NSSec(NBvs):

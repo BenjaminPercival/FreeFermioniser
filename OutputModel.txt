@@ -2897,3 +2897,35 @@ Number of gravitini
 Gravitino: dXbar^mu |S >
 Number of gravitini
 0
+Diagonal GGSO phases not Modular Invariant for i =
+0
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+0
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+0
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+0
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+0
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+0
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+1
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
+Diagonal GGSO phases not Modular Invariant for i =
+1
+Diagonal GGSO phases not Modular Invariant for el =
+[0, 1]
