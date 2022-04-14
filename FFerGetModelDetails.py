@@ -172,9 +172,8 @@ def NumbSecs(NBV,lcms):
     
 #get inner L and R prods to restrict to only M<=0 sec
 def vacE(sec):
-    a_vL=0.5*np.dot(sec[0:16],sec[0:16])
-    a_vR=0.5*np.dot(sec[16:28],sec[16:28]) \
-          + np.dot(sec[28:44],sec[28:44])
+    a_vL=np.dot(sec[0:4],sec[0:4])+0.5*np.dot(sec[4:16],sec[4:16])
+    a_vR=0.5*np.dot(sec[16:28],sec[16:28])+ np.dot(sec[28:44],sec[28:44])
     return [a_vL,a_vR]
 
 #Want only M<=0 secs but get all sectors first
@@ -271,6 +270,12 @@ def GetGGSOMSecBas(MSec,MSecUnRed,NBV,delts,bas,ggso):
                     SGSO3 = SGSO3 * TSGSO3
             SecGSO[i][j] = SGSO1 * SGSO2 * SGSO3
     return SecGSO
+
+def MSectVacEs(MSects,NBV):
+    NumMSecs=MSects.shape[0]
+    MSecVacEs=[vacE(MSects[i][NBV:]) for i in range(NumMSecs)]
+    return MSecVacEs
+
 """
 def GetGGSOMSecMSec(MSec,MSecUnRed,NBV,delts,bas,ggso):
     NumMSecs=MSec.shape[0]

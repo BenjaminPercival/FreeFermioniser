@@ -6,7 +6,7 @@ Created on Thu Apr  7 17:25:50 2022
 @author: wmnc67
 """
 
-from FFerGetModelDetails import vacE, DProd
+from FFerGetModelDetails import DProd, printr, printr2
 
 #NSSec()
 #SSec() #in this function account for possible Stilde
@@ -17,33 +17,134 @@ from FFerGetModelDetails import vacE, DProd
 #Exotics()
 #Hidden()
 
-def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas):
+def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas,MScVacEs):
     NumMSecs=MSects.shape[0]
-    MSecVacEs=[vacE(MSects[i][NBV:]) for i in range(NumMSecs)]
-    MSecsUnprojBool=[]
-    MSecsUnproj=[]
+    #MSecVacEs=[vacE(MSects[i][NBV:]) for i in range(NumMSecs)]
+    #MSecs48UnprojBool=[]
+    MSecs48Unproj=[]
+    #MSecs44UnprojBool=[]
+    MSecs44Unproj=[]
+    #MSecs08UnprojBool=[]
+    MSecs08Unproj=[]
+    MSecs04Unproj=[]
+    MSecs40Unproj=[]
     for i in range(1,NumMSecs):#don't need to do NS
-        vacEi=MSecVacEs[i]
+        vacEi=MScVacEs[i]
         SecUnProjd=True
-        for j in range(1,NBV):#don't need 1
-            if DProd(MSects[i][NBV:],bas[j][:])==0:
-                if vacEi==[4,8]:
+        print("For sector: ", MSects[i])
+        print("vacE is: ", vacEi)
+        if vacEi==[4,8]:
+            for j in range(1,NBV):#don't need 1
+                if DProd(MSects[i][NBV:],bas[j][:])==0:
                     LHS=deltMSects[i]*MSectGSOs[i][j]
                     if LHS==-1:
                         SecUnProjd=False
-                elif vacEi==[4,4]:
+                        print("project by basis vec j=", j)
+            if SecUnProjd is True:
+                MSecs48Unproj.append(MSects[i])
+        elif vacEi==[4,4]:
+            oscillsProjd44=[]
+            for j in range(1,NBV):#don't need 1
+                if DProd(MSects[i][NBV:],bas[j][:])==0:
                     for k in range(28,44):
                         LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
                         if LHS==-1:
-                            SecUnProjd=False
-                        
-        MSecsUnprojBool.append(SecUnProjd)
+                            oscillsProjd44.append(k)
+            oscillsUnProjd44=[osc for osc in range(28,44) if osc not in oscillsProjd44]
+            if len(oscillsUnProjd44)!=0:
+                MSecs44Unproj.append(MSects[i])
+                MSecs44Unproj.append(oscillsUnProjd44)
+                
+                
+        elif vacEi==[0,8]:
+            oscillsProjd08=[]
+            for j in range(1,NBV):#don't need 1
+                if DProd(MSects[i][NBV:],bas[j][:])==0:
+                    for k in range(0,4):
+                        LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
+                        if LHS==-1:
+                            oscillsProjd08.append(k)
+            oscillsUnProjd08=[osc for osc in range(0,4) if osc not in oscillsProjd08]
+            if len(oscillsUnProjd08)!=0:
+                MSecs08Unproj.append(MSects[i])
+                MSecs08Unproj.append(oscillsUnProjd08)
+                
+        elif vacEi==[0,4]:
+            oscillsProjd04=[]
+            for j in range(1,NBV):#don't need 1
+                if DProd(MSects[i][NBV:],bas[j][:])==0:
+                    for k in range(0,4):
+                        for l in range(28,44):
+                            LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])*(-1)**(bas[j][l])
+                            if LHS==-1:
+                                oscillsProjd04.append([k,l])
+                                #oscillsProjd04.append(l)
+            oscillsUnProjd04=[[osck,oscl] for osck in range(28,44) for oscl in range(28,44) if [osck,oscl] not in oscillsProjd04]
+            #oscillsUnProjd04=[osc for osc in range(28,44) if osc not in oscillsProjd04]
+            if len(oscillsUnProjd04)!=0:
+                MSecs04Unproj.append(MSects[i])
+                MSecs04Unproj.append(oscillsUnProjd04)
+                
+        elif vacEi==[4,0]:
+            oscillsProjd40=[]
+            for j in range(1,NBV):#don't need 1
+                if DProd(MSects[i][NBV:],bas[j][:])==0:
+                    for k in range(28,44):
+                        for l in range(28,44):
+                            LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
+                            if LHS==-1:
+                                oscillsProjd40.append([k,l])
+                                #oscillsProjd40.append(l)
+            
+            oscillsUnProjd40=[[osck,oscl] for osck in range(28,44) for oscl in range(28,44) if [osck,oscl] not in oscillsProjd40]
+            if len(oscillsUnProjd40)!=0:
+                MSecs40Unproj.append(MSects[i])
+                MSecs40Unproj.append(oscillsUnProjd40)
+                
         
-    return MSecsUnproj
+    return [MSecs48Unproj, MSecs44Unproj, MSecs08Unproj, MSecs04Unproj, MSecs40Unproj]
             
             
-            
+def printUnProjdSecs(MScts,UnProjdScs,NBV):
     
+    MSecs48=UnProjdScs[0]#[MSecs48Unproj, MSecs44Unproj, MSecs08Unproj, MSecs04Unproj, MSecs40Unproj]
+    MSecs44=UnProjdScs[1]
+    MSecs08=UnProjdScs[2]
+    MSecs04=UnProjdScs[3]
+    MSecs40=UnProjdScs[4]
+    
+    
+    printr("Massless Sectors:")
+    printr2("NS Sector:", MScts[0][:NBV])
+    printr("Sectors of Vacuum Energy=(4,0) (S Sector?):")
+    for i in range(len(MSecs40)):
+        if i%2==0:
+            printr2("Sector: ", MSecs40[i][:NBV])
+        else:
+            #printr2("oscillators: ", MSecs40[i])
+            printr("oscillators: ...")
+    printr("Sectors of Vacuum Energy=(4,8):")
+    for sec48 in MSecs48:
+        printr(sec48[:NBV])
+    printr("Sectors of Vacuum Energy=(4,4):")
+    for i in range(len(MSecs44)):
+        if i%2==0:
+            printr2("Sector: ", MSecs44[i][:NBV])
+        else:
+            printr2("oscillators: ", MSecs44[i][:NBV])
+    printr("Sectors of Vacuum Energy=(0,8):")
+    for i in range(len(MSecs08)):
+        if i%2==0:
+            printr2("Sector: ", MSecs08[i][:NBV])
+        else:
+            printr2("oscillators: ", MSecs08[i][:NBV])
+    printr("Sectors of Vacuum Energy=(0,4):")
+    for i in range(len(MSecs04)):
+        if i%2==0:
+            printr2("Sector: ", MSecs04[i][:NBV])
+        else:
+            printr2("oscillators: ", MSecs04[i][:NBV])            
+
     
 def NSSec(NBvs):
     #secBC=[0 for i in range(44)]
