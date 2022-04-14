@@ -56,7 +56,7 @@ if __name__=='__main__':
             #print("basis in good form")
             ModInvB=IsModInvB(NumBVs,BP,Basis,Nis)
             if ModInvB is True:
-                print("Input is in good order")
+                print("Input is all consistent and as desired")
                 NSec=NumbSecs(NumBVs,Nis)
                 #t2=timeit.default_timer()
                 #print(t2-t1)
