@@ -7,7 +7,8 @@ Created on Thu Apr  7 17:25:50 2022
 """
 
 from FFerGetModelDetails import DProdLR, printr, printr2 #DProd, 
-
+from z3 import *
+import numpy as np
 #NSSec()
 #SSec() #in this function account for possible Stilde
 #"Model's spacetime SUSY is N=", ModSusy()
@@ -145,191 +146,194 @@ def printUnProjdSecs(MScts,UnProjdScs,NBV):
             printr2("Sector: ", MSecs04[i][:NBV])
         else:
             printr2("oscillators: ", MSecs04[i][:NBV])            
+    
+    return None
+
 
     
-def NSSec(NBvs):
+def NSSec(NBvs,bas):
     #secBC=[0 for i in range(44)]
     printr("NS sector:")# 1 left and two right-moving NS oscillators or 1 dX^mu")
     #oscillsL=[index for index, char in enumerate(secBC) if index<4 if char==0]
     #oscillsR=[index for index, char in enumerate(secBC) if index>16 if char==0]
-    
+    printr("Along with the Gravitational states: psi^mu dXbar^mu |NS>, we have:")
+    printr("[L Osc, R Osc1, Freq 1, R Osc2, Freq 2]")
     for OscInd0 in range(0,4):
-        for OscInd1 in range(27,44):
+        for OscInd1 in range(28,44):
             for freq1 in range(2):
-                for OscInd2 in range(27,44):
+                for OscInd2 in range(28,44):
                     for freq2 in range(2):
                         for j in range(NBvs):
                         #for basisBC in Basis:
-                            OscBit=(-1)**(Basis[j][OscInd0])*(-1)**(freq1*Basis[j][OscInd1])*(-1)**(freq2*Basis[j][OscInd2])
+                            OscBit=(-1)**(bas[j][OscInd0])*(-1)**(freq1*bas[j][OscInd1])*(-1)**(freq2*bas[j][OscInd2])
                             if OscBit==1: #LHS=+1 necessarily.
                                 #print("L osc, R oscs: ")
                                 printr([OscInd0,OscInd1,freq1,OscInd2,freq2])
-    printr("Gravitational states: psi^mu dXbar^mu |NS>")
+    
 
-def SSec(): 
-    secBC=[1 if i<4 else 0 for i in range(44)]
+def Massless40(bas,NBV,ggso,UnProjdScs):  #S Sector
+    
+    #secBC=[1 if i<4 else 0 for i in range(44)]
+    MSecs40=UnProjdScs[4]
+    NSecs40=len(MSecs40)
     NSUSY=10
-    #if S in basis:
-    printr("S sector:") # two right-moving NS oscillators or 1 dX^mu")
-    RFs=[]
-    RFs=[index for index, char in enumerate(secBC) if char == 1]
-        #if BC==1:
-            #print(secBC.index(BC))
-            #RFs.append(secBC.index(BC))
-    #print(RFs)
-    #RFlen=len(RFs)
-    oscills=[index for index, char in enumerate(secBC) if index>27 if char==0]
-    b=[Bool('b%s' % (i)) for i in range(44)]
-    f = [b[i] for i in RFs] 
-    #print("f:", f)
-    s=Solver()
-    s.reset()
-    #GGSO eqn
-    for i in range(NumBVs):
-        LHS=(-1)*GSO[1][i]
-        for OscInd1 in range(27,44):
-            for freq1 in range(2):
-                for OscInd2 in range(27,44):
-                    for freq2 in range(2):
-
-                        OscBit=(-1)**(freq1*Basis[i][OscInd1])*(-1)**(freq2*Basis[i][OscInd2])
-                        RRs=[]
-                        for j in range(4):
-                            if Basis[i][j]==1:
-                                RRs.append(i)
-                        if len(RRs)==0 and GSO[1][i]==1: # projects gravitino
-                            NSUSY=0
-                            printr("Model is non-supersymmetric")
-                        else:
-                        #print("RRs: ", RRs)
-                            fRR=[b[k] for k in RRs] #ramond fermions to constrain
-                            #print("fRR: ", fRR)
-                            if LHS*OscBit==1:
-                                s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==0) 
-                            else:
-                                s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
-                    
-                #print(s.check())
-                            #if s.check() == sat: 
-                                #print("Right-moving NS Oscillators: ")
-                                #printr([OscInd1,OscInd2])
-                                #NumOscStates+=1
-                
-                    
-                            while s.check() == sat: 
-                            #if s.check() == sat: 
-                                m = s.model()
-# =============================================================================
-#                                 for v in vars:
-#                                   print("%s = %5s" % (v, m.evaluate(v, model_completion = True))),
-#                                 print
-#                                 s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in vars]]))
-# =============================================================================
-                               
+    
+    for i in range(NSecs40):
+        if i%2==0:
+            if np.sum(MSecs40[i][NBV:NBV+4])==4:
+            
+                printr("S sector:") # two right-moving NS oscillators or 1 dX^mu")
+                for oscS in MSecs40[i+1]:
+                    #print(oscS)
+                    b=[Bool('b%s' % (i)) for i in range(4)]
+                    s=Solver()
+                    OscInd1=oscS[0]
+                    OscInd2=oscS[1]
+                    for freq1 in range(2):
+                        for freq2 in range(2):
+                            for i in range(NBV):
+                                LHS=(-1)*ggso[1][i]
+                                RRs=[]
+                                for j in range(4):
+                                    if bas[i][j]==1:
+                                        RRs.append(j)
+                                if len(RRs)==0 and ggso[1][i]==1: # projects
+                                    NSUSY=0
+                                    printr("S gravitini projected- Model is non-supersymmetric")
                                 
-                                stateB=[m.evaluate(f[i], model_completion = True) for i in range(len(RFs))]
+                                
+                                    #printr2("Oscills: ") 
+                    
+                                OscBit=(-1)**(freq1*bas[i][OscInd1])*(-1)**(freq2*bas[i][OscInd2])
+                                fRR=[b[k] for k in RRs] #ramond fermions to constrain
+                                #print("fRR: ", fRR)
+                                if LHS*OscBit==1:
+                                    s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==0) 
+                                else:
+                                    s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
+                                #SUSYcount=0
+                            printr([OscInd1,freq1,OscInd2,freq2])
+                            while s.check() == sat: 
+                                #if s.check() == sat: 
+                                m = s.model()
+        # =============================================================================
+        #                                 for v in vars:
+        #                                   print("%s = %5s" % (v, m.evaluate(v, model_completion = True))),
+        #                                 print
+        #                                 s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in vars]]))
+        # =============================================================================
+                                stateB=[m.evaluate(b[i], model_completion = True) for i in range(4)]
                                 #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
                                 
                                 printr(stateB)
-                                #countr+=1
+                                
+                                SUSYcount+=1
                                 #if countr%100==0:
                                 #    print(countr)
                                 s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
+                                    
                             s.reset()
+                                        
+                         
+            else:
+                printr("Other (4,0) sector(?)- error?")
+    
     #s.reset()
     if NSUSY!=0:
+        Sket=[Bool('S%s' % (i)) for i in range(4)]
     #gravitino states:
-        for i in range(NumBVs):
-            LHS=(-1)*GSO[1][i]
+        s=Solver()
+        s.reset()
+        for i in range(NBV):
+            LHS=(-1)*ggso[1][i]
             RRs=[]
             for j in range(4):
-                if Basis[i][j]==1:
+                if bas[i][j]==1:
                     RRs.append(i)
             if len(RRs)!=0:
                 #print("RRs: ", RRs)
-                fRR=[b[k] for k in RRs] #ramond fermions to constrain
-                s=Solver()
-                s.reset()
-                if GSO[1][i]==1:
-                    s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
+                SRR=[Sket[k] for k in range(len(Sket))] #ramond fermions to constrain
+                
+                if ggso[1][i]==1:
+                    s.add(Sum([If(SRR[i],1,0) for i in range(len(SRR))])%2==1) 
                 else:
-                    s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==0)
+                    s.add(Sum([If(SRR[i],1,0) for i in range(len(SRR))])%2==0)
                 #if s.check() == sat: 
-            printr("Gravitino: dXbar^mu |S >")
+        printr("Gravitino: dXbar^mu |S >")
                 #NumOscStates+=1
-            countr=0
-            while s.check() == sat: 
-            #if s.check() == sat: 
-                
-                m = s.model () 
-                
-                stateB=[m[f[i]] for i in range(len(RFs))]
-                #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
-                printr(stateB)
-                countr+=1
-                #if countr%100==0:
-                #    print(countr)
-                s.add(Not(And([v() == m[v] for v in m]))) 
-            s.reset()
-            printr2("Number of gravitini", countr)
+        countr=0
+        while s.check() == sat: 
+        #if s.check() == sat: 
+            
+            m = s.model () 
+            
+            stateB=[m[Sket[i]] for i in range(len(Sket))]
+            #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
+            printr(stateB)
+            countr+=1
+            #if countr%100==0:
+            #    print(countr)
+            s.add(Not(And([v() == m[v] for v in m]))) 
+        s.reset()
+        NSUSY=countr/2
+        printr2("Number of gravitini", NSUSY)
+            
+    return NSUSY
 
 #def enhancements():
     
-def ObservableMassless():
-    for secBC in MSectorBC:
+def Massless48(bas,NBV,ggso,UnProjdScs):
+    MSecs48=UnProjdScs[0]
+    NSecs48=len(MSecs48)
+    printr("Massless Sectors Vacuum Energy= (4,8)-> spinorials")
+    for i in range(NSecs48):
+         
+        RFs=[]
+        RFs=[index for index, char in enumerate(MSecs48[i][NBV:]) if char == 1]
+        #if BC==1:
+            #print(secBC.index(BC))
+            #RFs.append(secBC.index(BC))
+        printr(RFs)
+        RFlen=len(RFs)
+        b=[Bool('b%s' % (i)) for i in range(44)]
+        f = [b[i] for i in RFs] 
+        #print("f:", f)
+        s=Solver()
         
-        Ind=MSectorBC.index(secBC)
-        sec=MSector[Ind]
-        secVacE = vacE(secBC)
+        #GGSO eqn
+    
         
-        if secVacE[0]==4 and secVacE[1]==8:
-            print("massless spinorial sector")
+        #print(LHS)
+        for j in range(NBV):#just need to loop through basis vecs
+            #print("secProj:", secProj)
+            #totalRR=DProd(secBC,secProj)
+            LHS=(-1)**MSecs48[i][NBV]*ggso[i][j]
+            RRs=[]
+            for k in range(44):
+                if bas[j][k]==1 and MSecs48[i][NBV+k]==1:
+                    RRs.append(k)
+            #print("RRs: ", RRs)
+            fRR=[b[l] for l in RRs] #ramond fermions to constrain
+            #print("fRR: ", fRR)
+            if LHS==1:
+                s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==0) 
+            else:
+                s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
+        #print(s)
+        #print(s.check())
+        if MSecs48[i][NBV]==1: #fermionic
+            if np.sum(MSecs48[i][NBV:NBV+4])==2 and np.sum(MSecs48[i][NBV+28:NBV+36])==6:
+                #F^1,2,3 - 16/16bars uniquely(?)- practically yes but, e.g., {psi1234,eta23} allowed currently
+                printr("Sector gives fermion generation(s):")
+        if s.check() == sat: 
+            m = s.model () 
             
-            print("sector:", sec)
-            printr(sec)
-            print("secBC:", secBC)
+            stateB=[m[f[i]] for i in range(len(RFs))]
+            #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
+            printr(stateB)
+            #countr+=1
+            #if countr%100==0:
+            #    print(countr)
+            s.add(Not(And([v() == m[v] for v in m]))) 
             
-            #RFs=[] #Ramond fermions
-            #for BC in secBC:
-            RFs=[]
-            RFs=[index for index, char in enumerate(secBC) if char == 1]
-                #if BC==1:
-                    #print(secBC.index(BC))
-                    #RFs.append(secBC.index(BC))
-            print(RFs)
-            RFlen=len(RFs)
-            b=[Bool('b%s' % (i)) for i in range(44)]
-            f = [b[i] for i in RFs] 
-            #print("f:", f)
-            s=Solver()
-            s.reset()
-            #GGSO eqn
-            
-            LHS=(-1)**secBC[0]*SecGSO(sec[0],sec[1])
-            #print(LHS)
-            for secProj in secsBCs:#just need to loop through basis vecs
-                #print("secProj:", secProj)
-                #totalRR=DProd(secBC,secProj)
-                RRs=[]
-                for i in range(44):
-                    if secProj[i]==1 and secBC[i]==1:
-                        RRs.append(i)
-                #print("RRs: ", RRs)
-                fRR=[b[k] for k in RRs] #ramond fermions to constrain
-                #print("fRR: ", fRR)
-                if LHS==1:
-                    s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==0) 
-                else:
-                    s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
-            #print(s)
-            print(s.check())
-            if s.check() == sat: 
-                m = s.model () 
-                
-                stateB=[m[f[i]] for i in range(len(RFs))]
-                #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
-                printr(stateB)
-                #countr+=1
-                #if countr%100==0:
-                #    print(countr)
-                s.add(Not(And([v() == m[v] for v in m]))) 
+        s.reset()

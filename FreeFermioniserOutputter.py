@@ -11,12 +11,13 @@ from z3 import * #pip install z3-solver
 import numpy as np
 import sys
 import itertools
-from SpectrumFunctions import UnprojectedSecs, NSSec, SSec, printUnProjdSecs
-from FFerGetModelDetails import getNumBVs, BasDotProds, IsModInvG, IsModInvB,LCMs,readBasis,NumbSecs,\
+from SpectrumFunctions import UnprojectedSecs, NSSec, Massless40, printUnProjdSecs, Massless48
+from FFerGetModelDetails import getNumBVs, BasDotProds, IsModInvG, IsModInvB,LCMs,readBasis,NumbSecs,supercurrent,\
 GetGGSOMSecBas,GetAllSecUnRedBC,GetAllSecRedBC,GetAllSecs,MasslessUnRedSecs,MasslessSecs,MSecDeltas,MSectVacEs,GetGGSOMSecMSec
 #import psyco  # pip install psychopy
 #psyco.full()
 import timeit
+import os
 #################################################################################
 #INPUT DATA
 InputBasisFile = "Input/InBasis.txt"  # File Containing the Basis Vectors
@@ -31,75 +32,61 @@ with open(InputBasisFile, "r") as InBasis:
 with open(InputGSOFile, "r") as InGSO:
      GSO = np.loadtxt(InGSO, dtype=complex)
 
+#delete previous output file (if there)
+if os.path.exists("OutputModel.txt"):
+    os.remove("OutputModel.txt")
+    print("Old output file has been deleted successfully")
+else:
+    pass
+
 #extract variables from input
 NumBVs=getNumBVs(Basis)  # num basis vecs
 BP=BasDotProds(Basis,GSO) # basis dot prods as numpy array
 Nis=LCMs(Basis) #LCMs of basis vecs
-#ModInvB=IsModInvB(NumBVs,BP,Basis,Nis)
-#NSec=NumbSecs(NumBVs,Nis)
-#AllUnRedScsBC=GetAllSecUnRedBC(NumBVs,Basis,NSec,Nis)
-#AllRedScsBC=GetAllSecRedBC(AllUnRedScsBC)
-#AllScs=GetAllSecs(NumBVs,NSec,Nis)
-#MSecBCUnRed=MasslessUnRedSecs(AllUnRedScsBC)
-#MSecs=MasslessSecs(AllRedScsBC,AllScs,NSec,Basis) #hstacked secs and secBCs
-#MSecDelts=MSecDeltas(MSecs,NumBVs)
-#MSecGSOs=GetGGSO(MSecs,MSecBCUnRed,NumBVs,MSecDelts,Basis)
+
 t1=timeit.default_timer()
+
 if __name__=='__main__':
     
-    ModInvG=IsModInvG(NumBVs,BP,GSO) #GGSO phase matric MI Boolean 
+    ModInvG=IsModInvG(NumBVs,BP,GSO) 
     #print("BP is: ", BP)
-    if ModInvG is True:
+    if ModInvG is True: #GGSO phase matric MI Boolean 
         #print("GSO mat is MI")
         InpBasisForm=readBasis(Basis)
-        if InpBasisForm is True:
+        if InpBasisForm is True: #basis in good form- Symmetric, right dimensions..
             #print("basis in good form")
-            ModInvB=IsModInvB(NumBVs,BP,Basis,Nis)
-            if ModInvB is True:
-                print("Input is all consistent and as desired")
-                NSec=NumbSecs(NumBVs,Nis)
-                #t2=timeit.default_timer()
-                #print(t2-t1)
-                AllUnRedScsBC=GetAllSecUnRedBC(NumBVs,Basis,NSec,Nis)
-                #t3=timeit.default_timer()
-                #print(t3-t2)
-                AllRedScsBC=GetAllSecRedBC(AllUnRedScsBC)
-                #t4=timeit.default_timer()
-                #print(t4-t3)
-                AllScs=GetAllSecs(NumBVs,NSec,Nis)
-                #t5=timeit.default_timer()
-                #print(t5-t4)
-                MSecBCUnRed=MasslessUnRedSecs(AllUnRedScsBC)
-                #t6=timeit.default_timer()
-                #print(t6-t5)
-                MSecs=MasslessSecs(AllRedScsBC,AllScs,NSec,Basis) #hstacked secs and secBCs
-                #t7=timeit.default_timer()
-                #print(t7-t6)
-                #print(MSecs)
-                MSecDelts=MSecDeltas(MSecs,NumBVs)
-                MSecGSOsMB=GetGGSOMSecBas(MSecs,MSecBCUnRed,NumBVs,MSecDelts,Basis,GSO)
-                MSecGSOsMM=GetGGSOMSecMSec(MSecs,MSecBCUnRed,NumBVs,MSecDelts,GSO)
-                #print(MSecGSOsMM)
-                MScVEs=MSectVacEs(MSecs,NumBVs)
-                #print(MScVEs)
-                UnProjdSecs=UnprojectedSecs(NumBVs,MSecs,MSecGSOsMM,MSecDelts,Basis,MScVEs)
-                printUnProjdSecs(MSecs,UnProjdSecs,NumBVs)
-                
-                #MSecGSOsMM=GetGGSOMSecMSec(MSecs,MSecBCUnRed,NumBVs,MSecDelts,Basis,GSO)
-                #print(MSecGSOsMM)
-                #FreeFermioniser create output file
-                
-                #print(readBasis()) # read input basis and output as in form 1,S,e1, etc + check in appropriate form- 44 entries
-                
-                #print(IsModInv()) #if not then bottom out
-                #print(supercurrent()) #if not then bottom out
-                #print(IsSymmetric()) #if not then bottom out
-                
-                #print(NSSec(NumBVs))
-                #print(SSec())#in this function account for possible Stilde
-                #print("Model's spacetime SUSY is N=", ModSusy())
-                #print(enhancements())
-                #print(ObservableMassless())
-                #print(OnShellTachyons())
-                #print(Exotics())
-                #print(Hidden())
+            SCurrent=supercurrent(NumBVs,Basis)
+            if SCurrent is True: #supercurrent constraint satisfied
+                ModInvB=IsModInvB(NumBVs,BP,Basis,Nis)
+                if ModInvB is True: #basis satisfies modular invariance rules
+                    print("Input is all consistent and as desired")
+                    NSec=NumbSecs(NumBVs,Nis) 
+                    #t2=timeit.default_timer()
+                    #print(t2-t1)
+                    AllUnRedScsBC=GetAllSecUnRedBC(NumBVs,Basis,NSec,Nis)
+                    #t3=timeit.default_timer()
+                    #print(t3-t2)
+                    AllRedScsBC=GetAllSecRedBC(AllUnRedScsBC)
+                    #t4=timeit.default_timer()
+                    #print(t4-t3)
+                    AllScs=GetAllSecs(NumBVs,NSec,Nis)
+                    #t5=timeit.default_timer()
+                    #print(t5-t4)
+                    MSecBCUnRed=MasslessUnRedSecs(AllUnRedScsBC)
+                    #t6=timeit.default_timer()
+                    #print(t6-t5)
+                    MSecs=MasslessSecs(AllRedScsBC,AllScs,NSec,Basis) #hstacked secs and secBCs
+                    #t7=timeit.default_timer()
+                    #print(t7-t6)
+                    #print(MSecs)
+                    MSecDelts=MSecDeltas(MSecs,NumBVs)
+                    MSecGSOsMB=GetGGSOMSecBas(MSecs,MSecBCUnRed,NumBVs,MSecDelts,Basis,GSO)
+                    MSecGSOsMM=GetGGSOMSecMSec(MSecs,MSecBCUnRed,NumBVs,MSecDelts,GSO)
+                    #print(MSecGSOsMM)
+                    MScVEs=MSectVacEs(MSecs,NumBVs)
+                    #print(MScVEs)
+                    UnProjdSecs=UnprojectedSecs(NumBVs,MSecs,MSecGSOsMM,MSecDelts,Basis,MScVEs)
+                    printUnProjdSecs(MSecs,UnProjdSecs,NumBVs)
+                    NSSec(NumBVs,Basis)
+                    Massless40(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    Massless48(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)

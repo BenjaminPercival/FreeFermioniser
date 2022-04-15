@@ -135,7 +135,22 @@ def readBasis(bas):
         
     return RightForm
     
-
+def supercurrent(NBV,bas):
+    check6=[False for i in range(NBV)]
+    ConsistentSCurrent=False
+    for i in range(NBV):
+        if bas[i][0]==(bas[i][1]+bas[i][4]+bas[i][10])%2:
+            if bas[i][0]==(bas[i][1]+bas[i][5]+bas[i][11])%2:
+                if bas[i][0]==(bas[i][2]+bas[i][6]+bas[i][12])%2:
+                    if bas[i][0]==(bas[i][2]+bas[i][7]+bas[i][13])%2:
+                        if bas[i][0]==(bas[i][3]+bas[i][8]+bas[i][14])%2:
+                            if bas[i][0]==(bas[i][3]+bas[i][9]+bas[i][15])%2:
+                                
+                                check6[i]=True
+    if check6.count(True)==6:
+        ConsistentSCurrent=True
+    return ConsistentSCurrent
+    
 def LCMs(bas):
     Ni=[2]
     for i in range(1,bas.shape[0]):
