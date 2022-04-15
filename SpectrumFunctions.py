@@ -6,7 +6,7 @@ Created on Thu Apr  7 17:25:50 2022
 @author: wmnc67
 """
 
-from FFerGetModelDetails import DProd, printr, printr2
+from FFerGetModelDetails import DProdLR, printr, printr2 #DProd, 
 
 #NSSec()
 #SSec() #in this function account for possible Stilde
@@ -17,7 +17,7 @@ from FFerGetModelDetails import DProd, printr, printr2
 #Exotics()
 #Hidden()
 
-def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas,MScVacEs):
+def UnprojectedSecs(NBV,MSects,MMSectGSOs,deltMSects,bas,MScVacEs):
     NumMSecs=MSects.shape[0]
     #MSecVacEs=[vacE(MSects[i][NBV:]) for i in range(NumMSecs)]
     #MSecs48UnprojBool=[]
@@ -31,23 +31,23 @@ def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas,MScVacEs):
     for i in range(1,NumMSecs):#don't need to do NS
         vacEi=MScVacEs[i]
         SecUnProjd=True
-        print("For sector: ", MSects[i])
-        print("vacE is: ", vacEi)
+        #print("For sector: ", MSects[i])
+        #print("vacE is: ", vacEi)
         if vacEi==[4,8]:
-            for j in range(1,NBV):#don't need 1
-                if DProd(MSects[i][NBV:],bas[j][:])==0:
-                    LHS=deltMSects[i]*MSectGSOs[i][j]
+            for j in range(1,NumMSecs):#don't need 1
+                if DProdLR(MSects[i][NBV:],MSects[j][NBV:])==[0,0]:
+                    LHS=deltMSects[i]*MMSectGSOs[i][j]
                     if LHS==-1:
                         SecUnProjd=False
-                        print("project by basis vec j=", j)
+                        #print("project by vec j=", MSects[j])
             if SecUnProjd is True:
                 MSecs48Unproj.append(MSects[i])
         elif vacEi==[4,4]:
             oscillsProjd44=[]
-            for j in range(1,NBV):#don't need 1
-                if DProd(MSects[i][NBV:],bas[j][:])==0:
+            for j in range(1,NumMSecs):#don't need 1
+                if DProdLR(MSects[i][NBV:],MSects[j][NBV:])==[0,0]:
                     for k in range(28,44):
-                        LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
+                        LHS=deltMSects[i]*MMSectGSOs[i][j]*(-1)**(MSects[j][NBV+k])
                         if LHS==-1:
                             oscillsProjd44.append(k)
             oscillsUnProjd44=[osc for osc in range(28,44) if osc not in oscillsProjd44]
@@ -58,10 +58,10 @@ def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas,MScVacEs):
                 
         elif vacEi==[0,8]:
             oscillsProjd08=[]
-            for j in range(1,NBV):#don't need 1
-                if DProd(MSects[i][NBV:],bas[j][:])==0:
+            for j in range(1,NumMSecs):#don't need 1
+                if DProdLR(MSects[i][NBV:],MSects[j][NBV:])==[0,0]:
                     for k in range(0,4):
-                        LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
+                        LHS=deltMSects[i]*MMSectGSOs[i][j]*(-1)**(MSects[j][NBV+k])
                         if LHS==-1:
                             oscillsProjd08.append(k)
             oscillsUnProjd08=[osc for osc in range(0,4) if osc not in oscillsProjd08]
@@ -71,11 +71,11 @@ def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas,MScVacEs):
                 
         elif vacEi==[0,4]:
             oscillsProjd04=[]
-            for j in range(1,NBV):#don't need 1
-                if DProd(MSects[i][NBV:],bas[j][:])==0:
+            for j in range(1,NumMSecs):#don't need 1
+                if DProdLR(MSects[i][NBV:],MSects[j][NBV:])==[0,0]:
                     for k in range(0,4):
                         for l in range(28,44):
-                            LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])*(-1)**(bas[j][l])
+                            LHS=deltMSects[i]*MMSectGSOs[i][j]*(-1)**(MSects[j][NBV+k])*(-1)**(MSects[j][NBV+l])
                             if LHS==-1:
                                 oscillsProjd04.append([k,l])
                                 #oscillsProjd04.append(l)
@@ -87,14 +87,15 @@ def UnprojectedSecs(NBV,MSects,MSectGSOs,deltMSects,bas,MScVacEs):
                 
         elif vacEi==[4,0]:
             oscillsProjd40=[]
-            for j in range(1,NBV):#don't need 1
-                if DProd(MSects[i][NBV:],bas[j][:])==0:
+            for j in range(1,NumMSecs):#don't need 1
+                if DProdLR(MSects[i][NBV:],MSects[j][NBV:])==[0,0]:
                     for k in range(28,44):
                         for l in range(28,44):
-                            LHS=deltMSects[i]*MSectGSOs[i][j]*(-1)**(bas[j][k])
+                            LHS=deltMSects[i]*MMSectGSOs[i][j]*(-1)**(MSects[j][NBV+k])
                             if LHS==-1:
                                 oscillsProjd40.append([k,l])
                                 #oscillsProjd40.append(l)
+                                
             
             oscillsUnProjd40=[[osck,oscl] for osck in range(28,44) for oscl in range(28,44) if [osck,oscl] not in oscillsProjd40]
             if len(oscillsUnProjd40)!=0:

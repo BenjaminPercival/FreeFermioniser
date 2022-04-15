@@ -32,6 +32,11 @@ def DProd(vi,vj):
           - np.dot(vi[28:44],vj[28:44])
    return DP
 
+def DProdLR(vi,vj):
+   DPL = np.dot(vi[0:4],vj[0:4])+0.5*np.dot(vi[4:16],vj[4:16]) 
+   DPR = 0.5*np.dot(vi[16:28],vj[16:28]) + np.dot(vi[28:44],vj[28:44])
+   return [DPL,DPR]
+
 # Dot product of basis vectors
 def BasDotProds(bas,GMat):
     BDP=np.array([[DProd(bas[i],bas[k]) for k in range(GMat.shape[1])] for i in range(GMat.shape[1])])
@@ -276,14 +281,14 @@ def MSectVacEs(MSects,NBV):
     MSecVacEs=[vacE(MSects[i][NBV:]) for i in range(NumMSecs)]
     return MSecVacEs
 
-"""
-def GetGGSOMSecMSec(MSec,MSecUnRed,NBV,delts,bas,ggso):
+
+def GetGGSOMSecMSec(MSec,MSecUnRed,NBV,delts,ggso):
     NumMSecs=MSec.shape[0]
-    SecGSO = np.ones((NumMSecs,NBV),dtype=np.complex64)
+    SecGSO = np.ones((NumMSecs,NumMSecs),dtype=np.complex64)
     #maybe can just do the sectors with the basis vecs GSOs
     for i in range(NumMSecs):
         for j in range(NumMSecs):
-            SGSO1 = (delts[i]**(np.sum(NumMSecs[j][NBV:])-1) * delts[j]**(np.sum(MSec[i][NBV:])-1))
+            SGSO1 = (delts[i]**(np.sum(MSec[j][NBV:])-1) * delts[j]**(np.sum(MSec[i][NBV:])-1))
             SGSO2 = np.around(np.exp(1j*np.pi*DProd((MSec[i][NBV:]-MSecUnRed[i][:]),MSec[j][NBV:]-MSecUnRed[j][:])))
             SGSO3 = 1
             for k in range(NBV):
@@ -292,5 +297,5 @@ def GetGGSOMSecMSec(MSec,MSecUnRed,NBV,delts,bas,ggso):
                     SGSO3 = SGSO3 * TSGSO3
             SecGSO[i][j] = SGSO1 * SGSO2 * SGSO3
     return SecGSO
-"""
+
 

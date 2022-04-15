@@ -1,13 +1,39 @@
 Massless Sectors:
 NS Sector:
-[2. 0. 0.]
+[2. 0. 0. 0. 0. 0.]
 Sectors of Vacuum Energy=(4,0) (S Sector?):
-Sector: 
-[0. 1. 0.]
-oscillators: ...
 Sectors of Vacuum Energy=(4,8):
-[0. 0. 1.]
-[0. 1. 1.]
+[0. 0. 0. 0. 1. 0.]
+[0. 0. 0. 1. 0. 0.]
+[0. 0. 1. 0. 0. 0.]
+[0. 1. 0. 0. 1. 0.]
+[0. 1. 0. 1. 0. 0.]
+[0. 1. 1. 0. 0. 0.]
+[1. 1. 1. 1. 1. 0.]
 Sectors of Vacuum Energy=(4,4):
+Sector: 
+[0. 0. 0. 0. 1. 1.]
+oscillators: 
+[36, 37, 38, 39, 40, 41]
+Sector: 
+[0. 0. 0. 1. 0. 1.]
+oscillators: 
+[36, 37, 38, 39, 40, 41]
+Sector: 
+[0. 0. 1. 0. 0. 1.]
+oscillators: 
+[36, 37, 38, 39, 40, 41]
+Sector: 
+[0. 1. 0. 0. 1. 1.]
+oscillators: 
+[36, 37, 38, 39, 40, 41]
+Sector: 
+[0. 1. 0. 1. 0. 1.]
+oscillators: 
+[36, 37, 38, 39, 40, 41]
+Sector: 
+[0. 1. 1. 0. 0. 1.]
+oscillators: 
+[36, 37, 38, 39, 40, 41]
 Sectors of Vacuum Energy=(0,8):
 Sectors of Vacuum Energy=(0,4):

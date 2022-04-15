@@ -13,7 +13,7 @@ import sys
 import itertools
 from SpectrumFunctions import UnprojectedSecs, NSSec, SSec, printUnProjdSecs
 from FFerGetModelDetails import getNumBVs, BasDotProds, IsModInvG, IsModInvB,LCMs,readBasis,NumbSecs,\
-GetGGSOMSecBas,GetAllSecUnRedBC,GetAllSecRedBC,GetAllSecs,MasslessUnRedSecs,MasslessSecs,MSecDeltas,MSectVacEs #GetGGSOMSecMSec
+GetGGSOMSecBas,GetAllSecUnRedBC,GetAllSecRedBC,GetAllSecs,MasslessUnRedSecs,MasslessSecs,MSecDeltas,MSectVacEs,GetGGSOMSecMSec
 #import psyco  # pip install psychopy
 #psyco.full()
 import timeit
@@ -78,9 +78,11 @@ if __name__=='__main__':
                 #print(MSecs)
                 MSecDelts=MSecDeltas(MSecs,NumBVs)
                 MSecGSOsMB=GetGGSOMSecBas(MSecs,MSecBCUnRed,NumBVs,MSecDelts,Basis,GSO)
+                MSecGSOsMM=GetGGSOMSecMSec(MSecs,MSecBCUnRed,NumBVs,MSecDelts,GSO)
+                #print(MSecGSOsMM)
                 MScVEs=MSectVacEs(MSecs,NumBVs)
-                print(MScVEs)
-                UnProjdSecs=UnprojectedSecs(NumBVs,MSecs,MSecGSOsMB,MSecDelts,Basis,MScVEs)
+                #print(MScVEs)
+                UnProjdSecs=UnprojectedSecs(NumBVs,MSecs,MSecGSOsMM,MSecDelts,Basis,MScVEs)
                 printUnProjdSecs(MSecs,UnProjdSecs,NumBVs)
                 
                 #MSecGSOsMM=GetGGSOMSecMSec(MSecs,MSecBCUnRed,NumBVs,MSecDelts,Basis,GSO)
