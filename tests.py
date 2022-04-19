@@ -8,17 +8,6 @@ Created on Wed Apr 13 15:22:35 2022
 import itertools
 import numpy as np
 
-InputBasisFile = "Input/InBasis.txt"
-with open(InputBasisFile, "r") as InBasis:
-     Basis = np.loadtxt(InBasis)
-
-lcms=[2,2]
-NSects=4
-NBV=2
-AllSectorBC = np.zeros((NSects,Basis.shape[1]))
-AllSector = np.zeros((NSects,NBV))
-for i,t in enumerate(itertools.product(*[range(j) for j in lcms])):
-    AllSectorBC[i,:] = sum([Basis[i,:] * t[i] for i in range(len(t))])
-    AllSector[i,:] = t
-
-print(AllSectorBC)
+z=(1+0j)
+if z==1:
+    print("yes")

@@ -9,6 +9,8 @@ Created on Thu Apr  7 17:25:50 2022
 from FFerGetModelDetails import DProdLR, printr, printr2 #DProd, 
 from z3 import *
 import numpy as np
+import sys
+np.set_printoptions(threshold=sys.maxsize)
 #NSSec()
 #SSec() #in this function account for possible Stilde
 #"Model's spacetime SUSY is N=", ModSusy()
@@ -17,6 +19,17 @@ import numpy as np
 #OnShellTachyons()
 #Exotics()
 #Hidden()
+
+def ConvertRFtoStr(RFInds):
+    RFStrs=['Psi^mu','Chi12','Chi34','Chi56','y1yb1','y2yb2','y3yb3','y4yb4','y5yb5','y6yb6',\
+            'w1wb1','w2wb2','w3wb3','w4wb4','w5wb5','w6wb6','y/wbar error','y/wbar error',\
+            'y/wbar error','y/wbar error','y/wbar error','y/wbar error','y/wbar error',\
+            'y/wbar error','y/wbar error','y/wbar error','y/wbar error','y/wbar error',\
+            'Psi1','Psi2','Psi3','Psi4','Psi5','Eta1','Eta2','Eta3',\
+            'Phi1','Phi2','Phi3','Phi4','Phi5','Phi6','Phi7','Phi8']
+    RFS=[RFStrs[i] for i in RFInds]
+    return RFS
+    
 
 def UnprojectedSecs(NBV,MSects,MMSectGSOs,deltMSects,bas,MScVacEs):
     NumMSecs=MSects.shape[0]
@@ -66,12 +79,18 @@ def UnprojectedSecs(NBV,MSects,MMSectGSOs,deltMSects,bas,MScVacEs):
                 
         elif vacEi==[0,8]:
             oscillsProjd08=[]
+            print("(0,8) sec: ", MSects[i][:NBV])
             for j in range(1,NumMSecs):#don't need 1
                 if DProdLR(MSects[i][NBV:],MSects[j][NBV:])==[0,0]:
                     for k in range(0,4):
                         LHS=deltMSects[i]*MMSectGSOs[i][j]*(-1)**(MSects[j][NBV+k])
                         if LHS==-1:
                             oscillsProjd08.append(k)
+                        if k==0:
+                            if LHS==-1:
+                                print("Projected by sec: ", MSects[j][:NBV])
+                                print("GSO of sec i with sec j: ", MMSectGSOs[i][j])
+                                print("print osc bit: ", (-1)**(MSects[j][NBV+k]))
             oscillsUnProjd08=[osc for osc in range(0,4) if osc not in oscillsProjd08]
             if len(oscillsUnProjd08)!=0:
                 MSec08UnProjInds.append(i)
@@ -227,11 +246,11 @@ def Massless40(bas,NBV,ggso,UnProjdScs):  #S Sector
                                 m = s.model()
         # =============================================================================
         #                                 for v in vars:
-        #                                   print("%s = %5s" % (v, m.evaluate(v, model_completion = True))),
+        #                                   print("%s = %5s" % (v, m.eval(v, model_completion = True))),
         #                                 print
-        #                                 s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in vars]]))
+        #                                 s.add(Or([p != v for p, v in [(v, m.eval(v, model_completion = True)) for v in vars]]))
         # =============================================================================
-                                stateB=[m.evaluate(b[i], model_completion = True) for i in range(4)]
+                                stateB=[m.eval(b[i], model_completion = True) for i in range(4)]
                                 #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
                                 
                                 printr(stateB)
@@ -239,7 +258,7 @@ def Massless40(bas,NBV,ggso,UnProjdScs):  #S Sector
                                 SUSYcount+=1
                                 #if countr%100==0:
                                 #    print(countr)
-                                s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
+                                s.add(Not(And([v() == m.eval(v, model_completion = True) for v in m]))) 
                                     
                             s.reset()
                                         
@@ -295,11 +314,15 @@ def Massless48(bas,NBV,ggsoMBs,UnProjdScs):
     MSecs48=UnProjdScs[0]
     MSecs48Inds=UnProjdScs[1]
     NSecs48=len(MSecs48)
+    trU11=0
+    trU12=0
+    trU13=0
     printr("Massless Sectors Vacuum Energy= (4,8)-> spinorials")
     for i in range(NSecs48):
          
-        RFs=[]
-        RFs=[index for index, char in enumerate(MSecs48[i][NBV:]) if char == 1]
+        #RFsX=[]
+        RFsX=[index for index, char in enumerate(MSecs48[i][NBV:]) if char == 1]
+        RFs=[index for index in RFsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
         #if BC==1:
             #print(secBC.index(BC))
             #RFs.append(secBC.index(BC))
@@ -312,16 +335,18 @@ def Massless48(bas,NBV,ggsoMBs,UnProjdScs):
         
         #GGSO eqn
     
-        print("For sec: ", MSecs48[i][:NBV])
+        #print("For sec: ", MSecs48[i][:NBV])
         #print(LHS)
         for j in range(NBV):#just need to loop through basis vecs
             #print("secProj:", secProj)
             #totalRR=DProd(secBC,secProj)
             LHS=(-1)**(MSecs48[i][NBV])*ggsoMBs[MSecs48Inds[i]][j]
-            RRs=[]
+            RRsX=[]
+            
             for k in range(44):
                 if bas[j][k]==1 and MSecs48[i][NBV+k]==1:
-                    RRs.append(k)
+                    RRsX.append(k)
+            RRs=[index for index in RRsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
             #print("RRs: ", RRs)
             fRR=[b[l] for l in RRs] #ramond fermions to constrain
             #print("fRR: ", fRR)
@@ -331,30 +356,53 @@ def Massless48(bas,NBV,ggsoMBs,UnProjdScs):
                 s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
             else:
                 print("complex GGSO phases not implemented yet / error in LHS variable")
-            print("for basis vec: ", j)
-            print("LHS is: ", LHS)
+            #print("for basis vec: ", j)
+            #print("LHS is: ", LHS)
         #print(s)
         #print(s.check())
+        stateArray=[]
         if s.check() == sat:
             printr(MSecs48[i][:NBV])
-            printr(RFs)
+            #printr(RFs)
+            printr(np.asarray(ConvertRFtoStr(RFs)))
+            stateArray.append(RFs)
             if MSecs48[i][NBV]==1: #fermionic
                 if np.sum(MSecs48[i][NBV:NBV+4])==2 and np.sum(MSecs48[i][NBV+28:NBV+36])==6:
                     #F^1,2,3 - 16/16bars uniquely(?)- practically yes but, e.g., {psi1234,eta23} allowed currently
                     printr("Sector gives fermion generation(s):")
+        
+        
         while s.check() == sat: 
-            m = s.model () 
+            #m = s.model () 
             
-            stateB=[m.evaluate(f[i], model_completion = True) for i in range(len(RFs))]
+            #stateB=[m.eval(f[i], model_completion = True) for i in range(len(RFs))]
             #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
-            printr(stateB)
+            #printr(stateB)
             #countr+=1
             #if countr%100==0:
             #    print(countr)
             #s.add(Not(And([v() == m[v] for v in m]))) 
-            s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
-            
+            #s.add(Not(And([v() == m.eval(v, model_completion = True) for v in m]))) 
+            m = s.model()
+            #for v in f:
+            stateB=[m.eval(f[i], model_completion = True) for i in range(len(RFs))]
+            state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
+            #printr(state)
+            stateArray.append(state)
+            #print
+            s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in f]]))
+        if len(stateArray)!=0:
+            stateArr=np.asarray(stateArray)
+            printr(stateArr)
+            for j in range(len(RFs)):
+                if stateArr[0][j]==33:
+                    trU11+=np.sum(stateArr[1:][j])
+                elif stateArr[0][j]==34:
+                    trU12+=np.sum(stateArr[1:][j])
+                elif stateArr[0][j]==35:
+                    trU13+=np.sum(stateArr[1:][j])
         s.reset()
+    return [trU11,trU12,trU13]
 
 def Massless44(bas,NBV,ggsoMBs,UnProjdScs):
     MSecs44=UnProjdScs[2]
@@ -362,15 +410,18 @@ def Massless44(bas,NBV,ggsoMBs,UnProjdScs):
     MSecs44Inds=UnProjdScs[3]
     NSecs44=len(MSecs44)
     #print(NSecs44)
+    trU11=0
+    trU12=0
+    trU13=0
     printr("Massless Sectors Vacuum Energy= (4,4)-> Vectorials with R-moving oscillator")
     for i in range(NSecs44):
         if i%2==0:
-            RFs=[]
-            RFs=[index for index, char in enumerate(MSecs44[i][NBV:]) if char == 1]
+            RFsX=[index for index, char in enumerate(MSecs44[i][NBV:]) if char == 1]
+            RFs=[index for index in RFsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
             #if BC==1:
                 #print(secBC.index(BC))
                 #RFs.append(secBC.index(BC))
-            print("for sec: ", MSecs44[i][:NBV])
+            #print("for sec: ", MSecs44[i][:NBV])
             b=[Bool('b%s' % (n)) for n in range(44)]
             f = [b[m] for m in RFs] 
             #print("f:", f)
@@ -384,12 +435,13 @@ def Massless44(bas,NBV,ggsoMBs,UnProjdScs):
                     for j in range(NBV):
                         LHS=(-1)**(MSecs44[i][NBV])*ggsoMBs[MSecs44Inds[int(i/2)]][j] #better to write the Oscbit as a complex number
                         #print(LHS)
-                        RRs=[]
+                        RRsX=[]
                         
                         for k in range(44):
                             if bas[j][k]==1 and MSecs44[i][NBV+k]==1:
-                                RRs.append(k)
-                        
+                                RRsX.append(k)
+                        RRs=[index for index in RRsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
+            
                         #print("RRs: ", RRs)
                         fRR=[b[l] for l in RRs] #ramond fermions to constrain
                         #print("fRR: ", fRR)
@@ -398,27 +450,39 @@ def Massless44(bas,NBV,ggsoMBs,UnProjdScs):
                         else:
                             s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
                     #be good to check for higgs here
-                        if oscR==37:
-                            print("oscR=37 and basis vec: ", j)
-                            print("LHS is: ", LHS)
-                            print("Oscbit is: ", Oscbit)
+                        #if oscR==37:
+                            #print("oscR=37 and basis vec: ", j)
+                            #print("LHS is: ", LHS)
+                            #print("Oscbit is: ", Oscbit)
                     #print(s.check())
+                    stateArray=[]
                     if s.check() == sat: 
-                        printr(RFs)
+                        printr(MSecs44[i][:NBV])
+                        #printr(RFs)
+                        printr(np.asarray(ConvertRFtoStr(RFs)))
+                        stateArray.append(RFs)
                         printr([oscR,freq])
+                    
                     while s.check() == sat: 
-                        m = s.model () 
-                        
-                        stateB=[m.evaluate(f[i], model_completion = True) for i in range(len(RFs))]
-                        #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
-                        printr(stateB)
-                        #countr+=1
-                        #if countr%100==0:
-                        #    print(countr)
-                        #s.add(Not(And([v() == m[v] for v in m])))
-                        s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
+                        m = s.model()
+                        #for v in f:
+                        stateB=[m.eval(f[i], model_completion = True) for i in range(len(RFs))]
+                        state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
+                        stateArray.append(state)
+                        #print
+                        s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in f]]))
+                    if len(stateArray)!=0:
+                        stateArr=np.asarray(stateArray)
+                        printr(stateArr)
+                        for j in range(len(RFs)):
+                            if stateArr[0][j]==33:
+                                trU11+=np.sum(stateArr[1:][j])
+                            elif stateArr[0][j]==34:
+                                trU12+=np.sum(stateArr[1:][j])
+                            elif stateArr[0][j]==35:
+                                trU13+=np.sum(stateArr[1:][j])
                     s.reset()
-    return TwistedHiggs
+    return [trU11,trU12,trU13,TwistedHiggs]
 
 
 
@@ -428,15 +492,18 @@ def Massless04(bas,NBV,ggsoMBs,UnProjdScs):
     MSecs04Inds=UnProjdScs[5]
     NSecs04=len(MSecs04)
     #print(NSecs44)
+    trU11=0
+    trU12=0
+    trU13=0
     printr("Massless Sectors Vacuum Energy= (0,4)-> L and R-moving oscillators, possible enhancments")
     for i in range(NSecs04):
         if i%2==0:
-            RFs=[]
-            RFs=[index for index, char in enumerate(MSecs04[i][NBV:]) if char == 1]
+            RFsX=[index for index, char in enumerate(MSecs04[i][NBV:]) if char == 1]
+            RFs=[index for index in RFsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
             #if BC==1:
                 #print(secBC.index(BC))
                 #RFs.append(secBC.index(BC))
-            print("for sec: ", MSecs04[i][:NBV])
+            #print("for sec: ", MSecs04[i][:NBV])
             b=[Bool('b%s' % (n)) for n in range(44)]
             f = [b[m] for m in RFs] 
             #print("f:", f)
@@ -451,12 +518,13 @@ def Massless04(bas,NBV,ggsoMBs,UnProjdScs):
                         for j in range(NBV):
                             LHS=(-1)**(MSecs04[i][NBV])*ggsoMBs[MSecs04Inds[int(i/2)]][j] #better to write the Oscbit as a complex number
                             #print(LHS)
-                            RRs=[]
+                            RRsX=[]
                             
                             for k in range(44):
                                 if bas[j][k]==1 and MSecs04[i][NBV+k]==1:
-                                    RRs.append(k)
-                            
+                                    RRsX.append(k)
+                            RRs=[index for index in RRsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
+            
                             #print("RRs: ", RRs)
                             fRR=[b[l] for l in RRs] #ramond fermions to constrain
                             #print("fRR: ", fRR)
@@ -465,39 +533,56 @@ def Massless04(bas,NBV,ggsoMBs,UnProjdScs):
                             else:
                                 s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
                         #be good to check for higgs here
-                            if oscR==37:
-                                print("oscR=37 and basis vec: ", j)
-                                print("LHS is: ", LHS)
-                                print("Oscbit is: ", Oscbit)
+                            #if oscR==37:
+                                #print("oscR=37 and basis vec: ", j)
+                                #print("LHS is: ", LHS)
+                                #print("Oscbit is: ", Oscbit)
                         #print(s.check())
+                        stateArray=[]
                         if s.check() == sat: 
-                            printr(RFs)
-                            printr([oscR,freq])
+                            printr(MSecs04[i][:NBV])
+                            #printr(RFs)
+                            printr(np.asarray(ConvertRFtoStr(RFs)))
+                            stateArray.append(RFs)
+                            printr([oscL,oscR,freq])
+                        
                         while s.check() == sat: 
-                            m = s.model () 
-                            
-                            stateB=[m.evaluate(f[i], model_completion = True) for i in range(len(RFs))]
-                            #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
-                            printr(stateB)
-                            #countr+=1
-                            #if countr%100==0:
-                            #    print(countr)
-                            #s.add(Not(And([v() == m[v] for v in m])))
-                            s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
+                            m = s.model()
+                            #for v in f:
+                            stateB=[m.eval(f[i], model_completion = True) for i in range(len(RFs))]
+                            state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
+                            stateArray.append(state)
+                            #print
+                            s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in f]]))
+                        if len(stateArray)!=0:
+                            stateArr=np.asarray(stateArray)
+                            printr(stateArr)
+                            for j in range(len(RFs)):
+                                if stateArr[0][j]==33:
+                                    trU11+=np.sum(stateArr[1:][j])
+                                elif stateArr[0][j]==34:
+                                    trU12+=np.sum(stateArr[1:][j])
+                                elif stateArr[0][j]==35:
+                                    trU13+=np.sum(stateArr[1:][j])
                         s.reset()
-    return Enhancement04
+    return [trU11,trU12,trU13,Enhancement04]
 
 def Massless08(bas,NBV,ggsoMBs,UnProjdScs):
     MSecs08=UnProjdScs[6]
     Enhancement08=False
     MSecs08Inds=UnProjdScs[7]
     NSecs08=len(MSecs08)
+    trU11=0
+    trU12=0
+    trU13=0
+    
     #print(NSecs44)
     printr("Massless Sectors Vacuum Energy= (0,8)-> L-moving Oscillator, possible enhancements")
     for i in range(NSecs08):
         if i%2==0:
-            RFs=[]
-            RFs=[index for index, char in enumerate(MSecs08[i][NBV:]) if char == 1]
+            
+            RFsX=[index for index, char in enumerate(MSecs08[i][NBV:]) if char == 1]
+            RFs=[index for index in RFsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
             #if BC==1:
                 #print(secBC.index(BC))
                 #RFs.append(secBC.index(BC))
@@ -515,12 +600,13 @@ def Massless08(bas,NBV,ggsoMBs,UnProjdScs):
                 for j in range(NBV):
                     LHS=(-1)**(MSecs04[i][NBV])*ggsoMBs[MSecs08Inds[int(i/2)]][j] #better to write the Oscbit as a complex number
                     #print(LHS)
-                    RRs=[]
+                    RRsX=[]
                     
                     for k in range(44):
                         if bas[j][k]==1 and MSecs08[i][NBV+k]==1:
-                            RRs.append(k)
-                    
+                            RRsX.append(k)
+                    RRs=[index for index in RRsX if index in range(16) or index in range(28,44)]#symmetric pairings assumed
+            
                     #print("RRs: ", RRs)
                     fRR=[b[l] for l in RRs] #ramond fermions to constrain
                     #print("fRR: ", fRR)
@@ -529,24 +615,49 @@ def Massless08(bas,NBV,ggsoMBs,UnProjdScs):
                     else:
                         s.add(Sum([If(fRR[i],1,0) for i in range(len(fRR))])%2==1) 
                 #be good to check for higgs here
-                    if oscR==37:
-                        print("oscR=37 and basis vec: ", j)
-                        print("LHS is: ", LHS)
-                        print("Oscbit is: ", Oscbit)
+                    #if oscR==37:
+                        #print("oscR=37 and basis vec: ", j)
+                        #print("LHS is: ", LHS)
+                        #print("Oscbit is: ", Oscbit)
                 #print(s.check())
+                
+                stateArray=[]
                 if s.check() == sat: 
-                    printr(RFs)
-                    printr([oscR,freq])
+                    printr(MSecs08[i][:NBV])
+                    #printr(RFs)
+                    printr(np.asarray(ConvertRFtoStr(RFs)))
+                    stateArray.append(RFs)
+                    #stateArray.append(ConvertRFtoStr(RFs))
+                    printr([oscL,oscR,freq])
+                
                 while s.check() == sat: 
-                    m = s.model () 
-                    
-                    stateB=[m.evaluate(f[i], model_completion = True) for i in range(len(RFs))]
-                    #state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
-                    printr(stateB)
-                    #countr+=1
-                    #if countr%100==0:
-                    #    print(countr)
-                    #s.add(Not(And([v() == m[v] for v in m])))
-                    s.add(Not(And([v() == m.evaluate(v, model_completion = True) for v in m]))) 
+                    m = s.model()
+                    #for v in f:
+                    stateB=[m.eval(f[i], model_completion = True) for i in range(len(RFs))]
+                    state=[ -1 if item.sexpr()=='true' else 0 for item in stateB]
+                    stateArray.append(state)
+                    #print
+                    s.add(Or([p != v for p, v in [(v, m.evaluate(v, model_completion = True)) for v in f]]))
+                if len(stateArray)!=0:
+                    stateArr=np.asarray(stateArray)
+                    printr(stateArr)
+                    for j in range(len(RFs)):
+                        if stateArr[0][j]==33:
+                            trU11+=np.sum(stateArr[1:][j])
+                        elif stateArr[0][j]==34:
+                            trU12+=np.sum(stateArr[1:][j])
+                        elif stateArr[0][j]==35:
+                            trU13+=np.sum(stateArr[1:][j])
                 s.reset()
-    return Enhancement08
+    return [trU11,trU12,trU13,Enhancement08]
+
+#from operator import add
+#better doing with numpy 
+def sumU1s(U1s48,U1s44,U1s04,U1s08):
+    U1sAll=list(map(lambda w,x,y,z:w+x+y+z, U1s48, U1s44,U1s04,U1s08))
+    printr2("Tr U(1)_1,2,3= ", U1sAll)
+    return U1sAll
+
+
+
+

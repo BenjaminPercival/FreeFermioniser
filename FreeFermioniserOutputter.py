@@ -11,13 +11,14 @@ from z3 import * #pip install z3-solver
 import numpy as np
 import sys
 import itertools
-from SpectrumFunctions import UnprojectedSecs, NSSec, Massless40, printUnProjdSecs, Massless48, Massless44, Massless04, Massless08
+from SpectrumFunctions import UnprojectedSecs, NSSec, Massless40, printUnProjdSecs, Massless48, Massless44, Massless04, Massless08,sumU1s
 from FFerGetModelDetails import getNumBVs, BasDotProds, IsModInvG, IsModInvB,LCMs,readBasis,NumbSecs,supercurrent,\
 GetGGSOMSecBas,GetAllSecUnRedBC,GetAllSecRedBC,GetAllSecs,MasslessUnRedSecs,MasslessSecs,MSecDeltas,MSectVacEs,GetGGSOMSecMSec
 #import psyco  # pip install psychopy
 #psyco.full()
 import timeit
 import os
+np.set_printoptions(threshold=sys.maxsize) #not sure needed here
 #################################################################################
 #INPUT DATA
 InputBasisFile = "Input/InBasis.txt"  # File Containing the Basis Vectors
@@ -88,8 +89,15 @@ if __name__=='__main__':
                     UnProjdSecs=UnprojectedSecs(NumBVs,MSecs,MSecGSOsMM,MSecDelts,Basis,MScVEs)
                     printUnProjdSecs(MSecs,UnProjdSecs,NumBVs)
                     #NSSec(NumBVs,Basis)
-                    Massless40(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
-                    Massless48(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
-                    Massless44(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
-                    Massless04(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
-                    Massless08(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    M40=Massless40(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    M48=Massless48(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    M44=Massless44(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    M04=Massless04(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    M08=Massless08(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    U1s48=[M48[i] for i in range(3)]
+                    U1s44=[M48[i] for i in range(3)]
+                    U1s04=[M48[i] for i in range(3)]
+                    U1s08=[M48[i] for i in range(3)]
+                    
+                    sumU1s(U1s48,U1s44,U1s04,U1s08)
+                    

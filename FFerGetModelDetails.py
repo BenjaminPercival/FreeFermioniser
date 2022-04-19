@@ -304,7 +304,7 @@ def GetGGSOMSecMSec(MSec,MSecUnRed,NBV,delts,ggso):
     for i in range(NumMSecs):
         for j in range(NumMSecs):
             SGSO1 = (delts[i]**(np.sum(MSec[j][NBV:])-1) * delts[j]**(np.sum(MSec[i][NBV:])-1))
-            SGSO2 = np.around(np.exp(1j*np.pi*DProd((MSec[i][NBV:]-MSecUnRed[i][:]),MSec[j][NBV:]-MSecUnRed[j][:])))
+            SGSO2 = np.around(np.exp(1j*np.pi*DProd(MSec[i][NBV:]-MSecUnRed[i][:],MSec[j][NBV:]-MSecUnRed[j][:])))
             SGSO3 = 1
             for k in range(NBV):
                 for l in range(NBV):
