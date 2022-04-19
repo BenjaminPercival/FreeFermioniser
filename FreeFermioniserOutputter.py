@@ -11,7 +11,7 @@ from z3 import * #pip install z3-solver
 import numpy as np
 import sys
 import itertools
-from SpectrumFunctions import UnprojectedSecs, NSSec, Massless40, printUnProjdSecs, Massless48
+from SpectrumFunctions import UnprojectedSecs, NSSec, Massless40, printUnProjdSecs, Massless48, Massless44, Massless04, Massless08
 from FFerGetModelDetails import getNumBVs, BasDotProds, IsModInvG, IsModInvB,LCMs,readBasis,NumbSecs,supercurrent,\
 GetGGSOMSecBas,GetAllSecUnRedBC,GetAllSecRedBC,GetAllSecs,MasslessUnRedSecs,MasslessSecs,MSecDeltas,MSectVacEs,GetGGSOMSecMSec
 #import psyco  # pip install psychopy
@@ -87,6 +87,9 @@ if __name__=='__main__':
                     #print(MScVEs)
                     UnProjdSecs=UnprojectedSecs(NumBVs,MSecs,MSecGSOsMM,MSecDelts,Basis,MScVEs)
                     printUnProjdSecs(MSecs,UnProjdSecs,NumBVs)
-                    NSSec(NumBVs,Basis)
+                    #NSSec(NumBVs,Basis)
                     Massless40(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
                     Massless48(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    Massless44(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    Massless04(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
+                    Massless08(Basis,NumBVs,MSecGSOsMB,UnProjdSecs)
